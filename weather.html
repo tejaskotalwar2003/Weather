@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Animated Weather App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --main-bg: linear-gradient(to right, #83a4d4, #b6fbff);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --primary: #00796b;
+            --primary-dark: #004d40;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--main-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .weather-container {
+            background: var(--card-bg);
+            padding: 30px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: popUp 0.6s ease-out;
+        }
+
+        @keyframes popUp {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: var(--primary);
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: scale(1.03);
+        }
+
+        #weatherResult {
+            margin-top: 20px;
+            text-align: left;
+            animation: fadeIn 0.7s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        img {
+            vertical-align: middle;
+            height: 30px;
+        }
+
+        @media (max-width: 480px) {
+            .weather-container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="weather-container">
+        <h1>🌦 Weather App</h1>
+        <input type="text" id="locationInput" placeholder="Enter location">
+        <button onclick="getWeather()">Get Weather</button>
+        <div id="weatherResult"></div>
+    </div>
+
+    <script>
+        async function getWeather() {
+            const location = document.getElementById("locationInput").value.trim();
+            const apiKey = "2e7cf60c2b6e49bcb0f104059252605";
+            const url = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(location)}&aqi=yes`;
+
+            const resultDiv = document.getElementById("weatherResult");
+            resultDiv.innerHTML = "";
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.error) {
+                    resultDiv.innerHTML = `<p style="color:red;">❌ Location not found. Please try again.</p>`;
+                } else {
+                    const current = data.current;
+                    const loc = data.location;
+                    const aqi = current.air_quality;
+
+                    resultDiv.innerHTML = `
+                        <p><span class="label">📍 Location:</span> ${loc.name}, ${loc.region}, ${loc.country}</p>
+                        <p><span class="label">🕒 Local Time:</span> ${loc.localtime}</p>
+                        <p><span class="label">🌡 Temperature:</span> ${current.temp_c}°C / ${current.temp_f}°F</p>
+                        <p><span class="label">🤔 Feels Like:</span> ${current.feelslike_c}°C / ${current.feelslike_f}°F</p>
+                        <p><span class="label">🌤 Condition:</span> ${current.condition.text}
+                            <img src="https:${current.condition.icon}" alt="icon">
+                        </p>
+                        <p><span class="label">💧 Humidity:</span> ${current.humidity}%</p>
+                        <p><span class="label">🌬 Wind:</span> ${current.wind_kph} kph (${current.wind_dir})</p>
+                        <p><span class="label">🔆 UV Index:</span> ${current.uv}</p>
+                        <hr>
+                        <h3>🌫 Air Quality (AQI)</h3>
+                        <p><span class="label">PM2.5:</span> ${aqi.pm2_5.toFixed(2)}</p>
+                        <p><span class="label">PM10:</span> ${aqi.pm10.toFixed(2)}</p>
+                        <p><span class="label">CO:</span> ${aqi.co.toFixed(2)}</p>
+                        <p><span class="label">NO₂:</span> ${aqi.no2.toFixed(2)}</p>
+                        <p><span class="label">O₃:</span> ${aqi.o3.toFixed(2)}</p>
+                        <p><span class="label">SO₂:</span> ${aqi.so2.toFixed(2)}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color:red;">⚠️ Error fetching weather data.</p>`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
